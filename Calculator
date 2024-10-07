@@ -1,0 +1,77 @@
+#include <TM1637Display.h>
+#include <Keypad.h>
+
+// Define the connections pins for TM1637
+#define CLK 2
+#define DIO 3
+
+// Initialize the TM1637 display
+TM1637Display display(CLK, DIO);
+
+// Keypad setup
+const byte ROWS = 4; // Four rows
+const byte COLS = 4; // Four columns
+char keys[ROWS][COLS] = {
+  {'1','2','3','+'},
+  {'4','5','6','-'},
+  {'7','8','9','*'},
+  {'C','0','=','/'}
+};
+
+byte rowPins[ROWS] = {4, 5, 6, 7};  // Connect to the row pinouts of the keypad
+byte colPins[COLS] = {8, 9, 10, 11}; // Connect to the column pinouts of the keypad
+
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+int operand1 = 0, operand2 = 0;
+char operation;
+bool inputSecond = false;
+
+void setup() {
+  display.setBrightness(0x0f); // Set brightness level (0 to 7)
+  Serial.begin(9600);
+  display.clear();
+}
+
+void loop() {
+  char key = keypad.getKey();
+  
+  if (key) {
+    if (key >= '0' && key <= '9') {
+      int num = key - '0';
+      
+      if (inputSecond) {
+        operand2 = operand2 * 10 + num;
+        display.showNumberDec(operand2);
+      } else {
+        operand1 = operand1 * 10 + num;
+        display.showNumberDec(operand1);
+      }
+    } else if (key == '+' || key == '-' || key == '*' || key == '/') {
+      operation = key;
+      inputSecond = true;
+      display.clear();
+    } else if (key == '=') {
+      int result = calculate(operand1, operand2, operation);
+      display.showNumberDec(result);
+      operand1 = result;
+      operand2 = 0;
+      inputSecond = false;
+    } else if (key == 'C') {
+      operand1 = 0;
+      operand2 = 0;
+      inputSecond = false;
+      display.clear();
+    }
+  }
+}
+
+int calculate(int op1, int op2, char op) {
+  switch (op) {
+    case '+': return op1 + op2;
+    case '-': return op1 - op2;
+    case '*': return op1 * op2;
+    case '/': return op2 != 0 ? op1 / op2 : 0;
+    default: return 0;
+  }
+}
