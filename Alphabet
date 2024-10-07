@@ -1,0 +1,54 @@
+#include <TM1637Display.h>
+#include <Keypad.h>
+
+// TM1637 pins
+#define CLK 2
+#define DIO 3
+
+TM1637Display display(CLK, DIO);
+
+// Define the keypad layout with letters
+const byte ROWS = 4; // four rows
+const byte COLS = 4; // four columns
+char keys[ROWS][COLS] = {
+    {'A', 'b', 'C', 'd'},
+    {'E', 'F', 'H', 'L'},
+    {'P', 'U', ' ', ' '}, // You can add more valid letters here
+    {' ', ' ', ' ', ' '}
+};
+
+byte rowPins[ROWS] = {4, 5, 6, 7}; // connect to the row pinouts of the keypad
+byte colPins[COLS] = {8, 9, 10, 11}; // connect to the column pinouts of the keypad
+
+Keypad keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+// Mapping of characters to 7-segment bit patterns
+uint8_t letterMap[128] = {0};  // Initialize the array with zeros
+
+void setup() {
+  // Set up the character bit patterns
+  letterMap['A'] = 0b01110111;  // A
+  letterMap['b'] = 0b01111100;  // b
+  letterMap['C'] = 0b00111001;  // C
+  letterMap['d'] = 0b01011110;  // d
+  letterMap['E'] = 0b01111001;  // E
+  letterMap['F'] = 0b01110001;  // F
+  letterMap['H'] = 0b01110110;  // H
+  letterMap['L'] = 0b00111000;  // L
+  letterMap['P'] = 0b01110011;  // P
+  letterMap['U'] = 0b00111110;  // U
+
+  display.setBrightness(0x0f);  // Max brightness
+  display.clear();  // Clear the display
+}
+
+void loop() {
+  char key = keypad.getKey();
+
+  if (key) {  // Check if a key is pressed
+    if (letterMap[key] != 0) {
+      // Display the corresponding letter
+      display.setSegments(&letterMap[key], 1, 0);
+    }
+  }
+}
