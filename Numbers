@@ -1,0 +1,37 @@
+#include <TM1637Display.h>
+#include <Keypad.h>
+
+// TM1637 pins
+#define CLK 2
+#define DIO 3
+
+TM1637Display display(CLK, DIO);
+
+// Define the keypad layout
+const byte ROWS = 4; // four rows
+const byte COLS = 4; // four columns
+char keys[ROWS][COLS] = {
+    {'A', 'B', 'C', 'D'},
+    {'E', 'F', 'G', 'H'},
+    {'I', 'J', 'K', 'L'},
+    {'M', 'N', 'O', 'P'}
+};
+
+byte rowPins[ROWS] = {4, 5, 6, 7}; // connect to the row pinouts of the keypad
+byte colPins[COLS] = {8, 9, 10, 11}; // connect to the column pinouts of the keypad
+
+Keypad keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+void setup() {
+    display.setBrightness(0x0f); // Set brightness level (0x00 to 0x0f)
+    display.showNumberDec(0); // Initial display
+}
+
+void loop() {
+    char key = keypad.getKey();
+
+    if (key) { // Check if a key is pressed
+        // Display the pressed letter on the TM1637
+        display.showNumberDec(key - 'A' + 1); // Convert letter to number for display
+    }
+}
